@@ -17,11 +17,11 @@ class Wallet(models.Model):
 
 
 class Transaction(models.Model):
+    wallet = models.ForeignKey(Wallet, related_name='wallet', on_delete=models.PROTECT, default='')
     transaction_id = models.AutoField(primary_key=True)
     amount = models.FloatField(default=0.00)
     created = models.DateTimeField(auto_now_add=True)
     is_complete = models.BooleanField(default=False)
-    wallet = models.ForeignKey(Wallet, related_name='wallet', on_delete=models.PROTECT, default='')
 
     class Meta:
         verbose_name = "معامله"
