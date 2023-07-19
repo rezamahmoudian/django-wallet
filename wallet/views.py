@@ -56,34 +56,36 @@ class TransactionDetailView(APIView):
         serializer = TransactionSerializer(transactions)
         return Response(serializer.data)
 
+    # گرفتن آیدی کیف پول از api ورودی
+
+    # def post(self, request):
+    #     serializer = TransactionSerializer(data=request.data)
+    #     print(request.data['wallet'])
+    #     if serializer.is_valid():
+    #         print(serializer.data)
+    #         # serializer.save()
+    #         wallet = Wallet.objects.get(id=request.data["wallet"])
+    #         wallet.balance += int(request.data["amount"])
+    #         wallet.save()
+    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# اضافه کردن آیدی کیف پول بصورت اتوماتیک (از api نمیگیره)
     def post(self, request):
+        data = request.data
+        data = dict(data)
+        print(data)
+        data['wallet'] = Wallet.objects.get(user_id=request.user.id).id
+        print("data2")
+        print(data)
+        data = request.data
         serializer = TransactionSerializer(data=request.data)
-        print(request.data['wallet'])
+        # print(serializer.data)
         if serializer.is_valid():
-            print(serializer.data)
-            # serializer.save()
+            serializer.save()
             wallet = Wallet.objects.get(id=request.data["wallet"])
             wallet.balance += int(request.data["amount"])
             wallet.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    '''
-    def post(self, request):
-        # data = request.data
-        # data = dict(data)
-        # print(data)
-        # data['wallet'] = Wallet.objects.get(user_id=request.user.id).id
-        # print("data2")
-        # print(data)
-        # data = request.data
-        serializer = TransactionSerializer(data=request.data)
-        # print(serializer.data)
-        if serializer.is_valid():
-            serializer.save()
-            wallet = Wallet.objects.get(id=request.data["wallet"])
-            wallet.balance += request.data["amount"]
-            wallet.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-'''
