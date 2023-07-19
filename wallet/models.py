@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 
 class Wallet(models.Model):
     name = models.CharField(max_length=255)
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
     balance = models.FloatField(default=0.00)
 
     class Meta:

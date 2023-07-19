@@ -6,8 +6,9 @@ from rest_framework.views import APIView
 from .models import Wallet, Transaction
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated, BasePermission
 
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView, RetrieveAPIView
+from rest_framework.generics import CreateAPIView, ListCreateAPIView, RetrieveUpdateAPIView, ListAPIView, RetrieveAPIView
 
 # Create your views here.
 
@@ -15,6 +16,20 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 class WalletListView(ListCreateAPIView):
     queryset = Wallet.objects.all()
     serializer_class = WalletSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class WalletDetailView(RetrieveUpdateAPIView):
+    def get_queryset(self):
+        # print(self.request.user)
+        print(self.request.user)
+        print("test:")
+        print(Wallet.objects.get(user=self.request.user))
+        queryset = Wallet.objects.filter(user=self.request.user)
+        return queryset
+    # queryset = Wallet.objects.get(user=get_user_model())
+    serializer_class = WalletSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class TransactionView(APIView):
