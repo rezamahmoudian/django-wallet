@@ -27,3 +27,17 @@ class Transaction(models.Model):
         verbose_name = "معامله"
         verbose_name_plural = "معاملات"
 
+
+class Shaba(models.Model):
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE)
+    shaba_number = models.CharField(max_length=24, unique=True)
+    bank_name = models.CharField(max_length=24)
+    full_name = models.CharField(max_length=24)
+    active_link = models.CharField(max_length=128, verbose_name="لینک ارسال شده", unique=True)
+    verified = models.BooleanField(default=False)
+    created = models.DateField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "shaba"
+        verbose_name_plural = "shaba"
+
