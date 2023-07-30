@@ -37,5 +37,5 @@ class ShabaSerializer(serializers.ModelSerializer):
         print("validation data: ")
         print(validated_data)
         shaba = Shaba.objects.create(active_link=active_link, wallet=wallet, **validated_data)
-        cache.set('active_link', active_link, 500)
+        cache.set('active_link', active_link, 5000)
         return shaba

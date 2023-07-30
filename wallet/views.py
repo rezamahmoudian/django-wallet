@@ -8,10 +8,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
-from rest_framework.generics import CreateAPIView, ListCreateAPIView, RetrieveUpdateAPIView, ListAPIView, RetrieveAPIView
+from rest_framework.generics import CreateAPIView, ListCreateAPIView, RetrieveUpdateAPIView, ListAPIView, \
+    RetrieveAPIView
 from django.core.management.utils import get_random_secret_key
 from django.http import QueryDict
 from django.core.cache import cache
+
 
 # Create your views here.
 
@@ -73,7 +75,7 @@ class TransactionDetailView(APIView):
     #         return Response(serializer.data, status=status.HTTP_201_CREATED)
     #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# اضافه کردن آیدی کیف پول بصورت اتوماتیک (از api نمیگیره)
+    # اضافه کردن آیدی کیف پول بصورت اتوماتیک (از api نمیگیره)
     def post(self, request):
         data = request.data
         data = dict(data)
@@ -104,15 +106,12 @@ class CreateShabaView(APIView):
 # agar user active link ra bzanad in view farakhani shavad va verify ra True konad
 class ActivateShabaView(APIView):
     def get(self, request, active_link):
-        print("activate key = " + active_link)
         active_key = cache.get('active_link')
-        print("active cache")
-        print(active_key)
-        if active_link==active_key:
+        if active_link == active_key:
             print("its ok")
-        shaba = Shaba.objects.get(active_link=active_link)
-        print(shaba)
-        return Response()
-
-
-
+            shaba = Shaba.objects.get(active_link=active_link)
+            shaba.update(verified=True)
+            shaba.save()
+        return Response({
+            "message": "shomare shaba faal shod"
+        })
