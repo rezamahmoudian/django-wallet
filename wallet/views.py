@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import Wallet, Transaction
-from .serializers import WalletSerializer, TransactionSerializer
+from .serializers import WalletSerializer, TransactionSerializer, ShabaSerializer
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from .models import Wallet, Transaction
@@ -9,6 +9,8 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from rest_framework.generics import CreateAPIView, ListCreateAPIView, RetrieveUpdateAPIView, ListAPIView, RetrieveAPIView
+from django.core.management.utils import get_random_secret_key
+from django.http import QueryDict
 
 # Create your views here.
 
@@ -78,9 +80,7 @@ class TransactionDetailView(APIView):
         data['wallet'] = Wallet.objects.get(user_id=request.user.id).id
         print("data2")
         print(data)
-        data = request.data
         serializer = TransactionSerializer(data=request.data)
-        # print(serializer.data)
         if serializer.is_valid():
             serializer.save()
             wallet = Wallet.objects.get(id=request.data["wallet"])
@@ -88,4 +88,25 @@ class TransactionDetailView(APIView):
             wallet.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+def create_activate_code():
+    key = get_random_secret_key()
+
+
+# shaba ra bsazad vali ba verify false, va activate code ra b user bdahad
+class CreateShabaView(APIView):
+
+    def post(self, request):
+        serializer = ShabaSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            print("serializer is valid")
+            serializer.save()
+            serializer.create(request.data)
+        return Response(serializer.data)
+
+# agar user active link ra bzanad in view farakhani shavad va verify ra True konad
+class ActivateShaba():
+    pass
+
 
