@@ -10,12 +10,17 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from rest_framework.generics import CreateAPIView, ListCreateAPIView, RetrieveUpdateAPIView, ListAPIView, \
     RetrieveAPIView
-from django.core.management.utils import get_random_secret_key
-from django.http import QueryDict
 from django.core.cache import cache
-
+import random
+import string
 
 # Create your views here.
+
+
+def get_random_string(length):
+    # With combination of lower and upper case
+    result_str = ''.join(random.choice(string.ascii_letters) for i in range(length))
+    return result_str
 
 
 class WalletListView(ListCreateAPIView):
@@ -56,9 +61,10 @@ class TransactionView(APIView):
 class TransactionDetailView(APIView):
     def get(self, request):
         wallet = Wallet.objects.get(user_id=request.user.id)
-        transactions = Transaction.objects.get(wallet_id=wallet.id)
+        transactions = Transaction.objects.filter(wallet_id=wallet.id)
         print(transactions)
-        serializer = TransactionSerializer(transactions)
+        serializer = TransactionSerializer(data=transactions)
+        serializer.is_valid()
         return Response(serializer.data)
 
     # گرفتن آیدی کیف پول از api ورودی
@@ -79,13 +85,11 @@ class TransactionDetailView(APIView):
     def post(self, request):
         data = request.data
         data = dict(data)
-        print(data)
-        data['wallet'] = Wallet.objects.get(user_id=request.user.id).id
-        print("data2")
-        print(data)
+        data['wallet'] = request.user.wallet.id-0
         serializer = TransactionSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
+            #####################################################################
             wallet = Wallet.objects.get(id=request.data["wallet"])
             wallet.balance += int(request.data["amount"])
             wallet.save()
@@ -96,20 +100,41 @@ class TransactionDetailView(APIView):
 # shaba ra bsazad vali ba verify false, va activate code ra b user bdahad
 class CreateShabaView(APIView):
     def post(self, request):
-        serializer = ShabaSerializer(data=request.data, context={'request': request})
+        data = request.data
+        serializer = ShabaSerializer(data=data, context={'request': request})
+        shaba_number = data['shaba_number']
+        bank_name = data["bank_name"]
+        full_name = data["full_name"]
+        active_key = get_random_string(72)
+        wallet_id = request.user.wallet.id
+        wallet = Wallet.objects.get(id=wallet_id)
         if serializer.is_valid():
             print("serializer is valid")
             serializer.save()
-        return Response(serializer.data)
+            cache.set("shaba_data", {
+                "shaba_number": shaba_number,
+                "bank_name": bank_name,
+                "full_name": full_name,
+                "active_key": active_key,
+                "wallet": wallet
+            }, 180)
+            return Response({
+                "shaba_data": serializer.data,
+                # "activelink"
+            })
+        else:
+            return Response({
+                "message": "your data is not valid"
+            })
 
 
 # agar user active link ra bzanad in view farakhani shavad va verify ra True konad
 class ActivateShabaView(APIView):
-    def get(self, request, active_link):
-        active_key = cache.get('active_link')
-        if active_link == active_key:
+    def get(self, request, active_key):
+        shaba_data = cache.get('shaba_data')
+        if active_key == shaba_data["active_key"]:
             print("its ok")
-            shaba = Shaba.objects.get(active_link=active_link)
+            shaba = Shaba.objects.get(active_key=active_key)
             shaba.update(verified=True)
             shaba.save()
         return Response({

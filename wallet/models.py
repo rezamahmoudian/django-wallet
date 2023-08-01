@@ -33,7 +33,7 @@ class Shaba(models.Model):
     shaba_number = models.CharField(max_length=24, unique=True)
     bank_name = models.CharField(max_length=24)
     full_name = models.CharField(max_length=24)
-    active_link = models.CharField(max_length=200, verbose_name="لینک ارسال شده", unique=True)
+    active_key = models.CharField(max_length=200, verbose_name="لینک ارسال شده", unique=True)
     verified = models.BooleanField(default=False)
     created = models.DateField(auto_now_add=True)
 
