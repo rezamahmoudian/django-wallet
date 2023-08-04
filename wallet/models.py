@@ -29,7 +29,7 @@ class Transaction(models.Model):
 
 
 class Shaba(models.Model):
-    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE)
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE) # wallet_id
     shaba_number = models.CharField(max_length=24, unique=True)
     bank_name = models.CharField(max_length=24)
     full_name = models.CharField(max_length=24)

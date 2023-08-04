@@ -8,9 +8,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
-from rest_framework.generics import CreateAPIView, ListCreateAPIView, RetrieveUpdateAPIView, ListAPIView, \
-    RetrieveAPIView
+from rest_framework.generics import CreateAPIView, ListCreateAPIView
 from django.core.cache import cache
+from django.urls import reverse
 import random
 import string
 
@@ -102,25 +102,30 @@ class CreateShabaView(APIView):
     def post(self, request):
         data = request.data
         serializer = ShabaSerializer(data=data, context={'request': request})
+
         shaba_number = data['shaba_number']
         bank_name = data["bank_name"]
         full_name = data["full_name"]
+
         active_key = get_random_string(72)
-        wallet_id = request.user.wallet.id
-        wallet = Wallet.objects.get(id=wallet_id)
+
         if serializer.is_valid():
             print("serializer is valid")
-            serializer.save()
             cache.set("shaba_data", {
                 "shaba_number": shaba_number,
                 "bank_name": bank_name,
                 "full_name": full_name,
                 "active_key": active_key,
-                "wallet": wallet
+                "wallet_id": request.user.wallet.id
             }, 180)
+
+            active_link = reverse('wallet:shaba_active', kwargs={'active_key': active_key})
+            print(active_link)
+            print("active link")
+            print(active_link)
             return Response({
                 "shaba_data": serializer.data,
-                # "activelink"
+                "activelink": active_link
             })
         else:
             return Response({
@@ -131,12 +136,27 @@ class CreateShabaView(APIView):
 # agar user active link ra bzanad in view farakhani shavad va verify ra True konad
 class ActivateShabaView(APIView):
     def get(self, request, active_key):
+
         shaba_data = cache.get('shaba_data')
-        if active_key == shaba_data["active_key"]:
-            print("its ok")
-            shaba = Shaba.objects.get(active_key=active_key)
-            shaba.update(verified=True)
-            shaba.save()
-        return Response({
-            "message": "shomare shaba faal shod"
-        })
+        if shaba_data is not None:
+            print(shaba_data)
+            if active_key == shaba_data["active_key"]:
+                print("its ok")
+                try:
+                    shaba = Shaba.objects.create(verified=True, **shaba_data)
+                    shaba.save()
+                    return Response({
+                        "message": "shomare shaba active shod"
+                    })
+                except:
+                    return Response({
+                        "message": "shomare shaba shoma active ast"
+                    })
+            else:
+                return Response({
+                    "message": "active link is not correct"
+                })
+        else:
+            return Response({
+                "message": "shomare shaba active nashod!!!"
+            })
