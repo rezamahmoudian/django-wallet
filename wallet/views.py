@@ -111,7 +111,9 @@ class CreateShabaView(APIView):
 
         if serializer.is_valid():
             print("serializer is valid")
-            cache.set("shaba_data", {
+            cache_name = f"shaba_data_{request.user.id}"
+            print(cache_name)
+            cache.set(cache_name, {
                 "shaba_number": shaba_number,
                 "bank_name": bank_name,
                 "full_name": full_name,
@@ -136,8 +138,8 @@ class CreateShabaView(APIView):
 # agar user active link ra bzanad in view farakhani shavad va verify ra True konad
 class ActivateShabaView(APIView):
     def get(self, request, active_key):
-
-        shaba_data = cache.get('shaba_data')
+        cache_name = f"shaba_data_{request.user.id}"
+        shaba_data = cache.get(cache_name)
         if shaba_data is not None:
             print(shaba_data)
             if active_key == shaba_data["active_key"]:
